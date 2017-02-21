@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity {
     EditText message;
     EditText phoneNumber;
     EditText interval;
-    Activity current;
 
     PendingIntent alarm = null;
     BroadcastReceiver alarmReceiver = new BroadcastReceiver() {
@@ -45,8 +44,7 @@ public class MainActivity extends AppCompatActivity {
         message = (EditText) findViewById(R.id.message);
         phoneNumber = (EditText) findViewById(R.id.phoneNumber);
         interval = (EditText) findViewById(R.id.interval);
-
-        //current = this;
+        
         started = false;
 
         start.setOnClickListener(new View.OnClickListener(){
