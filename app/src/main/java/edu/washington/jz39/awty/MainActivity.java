@@ -1,6 +1,7 @@
 package edu.washington.jz39.awty;
 
 import android.app.Activity;
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -10,6 +11,7 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,6 +19,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.support.v4.content.ContextCompat;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity {
     private boolean started;
@@ -24,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     EditText message;
     EditText phoneNumber;
     EditText interval;
-    Activity current;
+    private final static int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
 
     PendingIntent alarm = null;
     BroadcastReceiver alarmReceiver = new BroadcastReceiver() {
@@ -32,7 +37,16 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("message");
             String number = intent.getStringExtra("number");
-            Toast.makeText(MainActivity.this, number + ": " + message, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivity.this, number + ": " + message, Toast.LENGTH_SHORT).show();
+
+            try{
+                SmsManager sm = SmsManager.getDefault();
+                sm.sendTextMessage(number, null, message, null, null);
+                Toast.makeText(getApplicationContext(), "Message sent", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), "Send failed", Toast.LENGTH_LONG).show();
+                e.printStackTrace();
+            }
         }
     };
 
@@ -48,6 +62,16 @@ public class MainActivity extends AppCompatActivity {
 
         //current = this;
         started = false;
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                    != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.SEND_SMS)) {
+                } else {
+                    ActivityCompat.requestPermissions(this,
+                                    new String[]{Manifest.permission.SEND_SMS},MY_PERMISSIONS_REQUEST_SEND_SMS);
+                }
+        }
 
         start.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -82,6 +106,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    Toast.makeText(this, "Send SMS permission is required for this app.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
     @Override
